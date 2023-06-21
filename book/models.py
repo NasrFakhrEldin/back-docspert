@@ -1,21 +1,13 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
-
-class Author(models.Model):
-    name = models.CharField(
-        null=False,
-        blank=False,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return self.name
+Author = get_user_model()
 
 
 class Book(models.Model):
     title = models.CharField(null=False, blank=False, max_length=255)
     author = models.ForeignKey(
-        "Author",
+        Author,
         null=False,
         blank=False,
         on_delete=models.CASCADE,
