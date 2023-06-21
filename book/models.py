@@ -1,5 +1,4 @@
 from django.db import models
-from django.urls import reverse
 
 
 class Author(models.Model):
@@ -8,9 +7,6 @@ class Author(models.Model):
         blank=False,
         max_length=255,
     )
-
-    # def get_absolute_url(self):
-    #     return reverse("books:author_detail", kwargs={"pk": self.pk})
 
     def __str__(self):
         return self.name
