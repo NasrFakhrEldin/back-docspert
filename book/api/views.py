@@ -28,9 +28,10 @@ class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [AuthorModifyOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action in ("list", "create"):
-            return BookSerializer
-        return BookDetailSerialzier
+        page = self.request.query_params.get("page")
+        if page:
+            return BookDetailSerialzier
+        return BookSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

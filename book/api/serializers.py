@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as BaseTokenObtainPairSerializer,
 )
@@ -23,10 +24,10 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = ["username"]
 
 
-class PageSerializer(serializers.ModelSerializer):
+class PageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
-        fields = "__all__"
+        fields = ["number", "content"]
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -37,5 +38,20 @@ class BookSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class PageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = "__all__"
+
+
 class BookDetailSerialzier(BookSerializer):
-    page = PageSerializer(many=True, read_only=True)
+    pages = serializers.SerializerMethodField()
+
+    def get_pages(self, obj):
+        number = self.context["request"].query_params.get("page")
+        if number:
+            page = obj.pages.filter(number=number).first()
+            if not page:
+                raise NotFound(detail="Page Not Found")
+            return PageListSerializer(page).data
+        return PageListSerializer(obj.pages.first()).data
