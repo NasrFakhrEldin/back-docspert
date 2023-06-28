@@ -46,9 +46,13 @@ class PageSerializer(serializers.ModelSerializer):
 
 class BookDetailSerialzier(BookSerializer):
     pages = serializers.SerializerMethodField()
+    pages_length = serializers.SerializerMethodField()
+
+    def get_pages_length(self, obj):
+        return obj.pages.count()
 
     def get_pages(self, obj):
-        number = self.context["request"].query_params.get("page")
+        number = self.context["request"].query_params.get("number")
         if number:
             page = obj.pages.filter(number=number).first()
             if not page:

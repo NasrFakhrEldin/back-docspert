@@ -28,7 +28,7 @@ class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [AuthorModifyOrReadOnly]
 
     def get_serializer_class(self):
-        page = self.request.query_params.get("page")
+        page = self.request.query_params.get("number")
         if page:
             return BookDetailSerialzier
         return BookSerializer
