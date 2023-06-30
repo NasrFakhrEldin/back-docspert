@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
+from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as BaseTokenObtainPairSerializer,
 )
@@ -8,6 +8,11 @@ from rest_framework_simplejwt.serializers import (
 from book.models import Book, Page
 
 Author = get_user_model()
+
+
+class NestedPageNumberPagination(PageNumberPagination):
+    page_size = 1
+    page_query_param = "pn"
 
 
 class TokenObtainPairSerializer(BaseTokenObtainPairSerializer):
@@ -21,13 +26,13 @@ class TokenObtainPairSerializer(BaseTokenObtainPairSerializer):
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ["username"]
+        fields = ["id", "username"]
 
 
 class PageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
-        fields = ["number", "content"]
+        fields = "__all__"
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -46,16 +51,25 @@ class PageSerializer(serializers.ModelSerializer):
 
 class BookDetailSerialzier(BookSerializer):
     pages = serializers.SerializerMethodField()
-    pages_length = serializers.SerializerMethodField()
 
-    def get_pages_length(self, obj):
-        return obj.pages.count()
+    class Meta:
+        model = Book
+        fields = "__all__"
 
-    def get_pages(self, obj):
-        number = self.context["request"].query_params.get("number")
-        if number:
-            page = obj.pages.filter(number=number).first()
-            if not page:
-                raise NotFound(detail="Page Not Found")
-            return PageListSerializer(page).data
-        return PageListSerializer(obj.pages.first()).data
+    def get_pages(self, instance):
+        request = self.context.get("request")
+        pages = instance.pages.all()
+
+        if hasattr(request, "query_params"):
+            pagination = NestedPageNumberPagination()
+            paginated_pages = pagination.paginate_queryset(pages, request)
+            page_serializer = PageListSerializer(paginated_pages, many=True)
+            return pagination.get_paginated_response(page_serializer.data).data
+
+        page_serializer = PageListSerializer(pages, many=True)
+        return page_serializer.data
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["pages"] = self.get_pages(instance)
+        return representation

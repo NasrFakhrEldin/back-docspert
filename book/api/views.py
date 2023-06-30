@@ -9,7 +9,11 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView as BaseTokenObtainPairView,
 )
 
-from book.api.permissions import AuthorModifyOrReadOnly, AuthorPageModifyOrReadOnly
+from book.api.permissions import (
+    AuthorModifyOrReadOnly,
+    AuthorPageModifyOrReadOnly,
+    IsAdminUserForObject,
+)
 from book.api.serializers import (
     BookDetailSerialzier,
     BookSerializer,
@@ -25,13 +29,12 @@ class TokenObtainPairView(BaseTokenObtainPairView):
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
-    permission_classes = [AuthorModifyOrReadOnly]
+    permission_classes = [AuthorModifyOrReadOnly | IsAdminUserForObject]
 
     def get_serializer_class(self):
-        page = self.request.query_params.get("number")
-        if page:
-            return BookDetailSerialzier
-        return BookSerializer
+        if self.action in ("list", "create"):
+            return BookSerializer
+        return BookDetailSerialzier
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -58,4 +61,4 @@ class BookViewSet(viewsets.ModelViewSet):
 class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
-    permission_classes = [AuthorPageModifyOrReadOnly]
+    permission_classes = [AuthorPageModifyOrReadOnly | IsAdminUserForObject]
