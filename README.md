@@ -81,3 +81,11 @@ Follow these steps to set up and run the Book App locally:
 2. **Access the Book App:**
 
    - Open your web browser and visit `http://localhost:8000/` to access the Book App.
+
+## Running Tests
+
+To run the unit tests for the critical functionalities of the app, use the following command:
+
+```shell
+python manage.py test
+```
