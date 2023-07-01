@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_yasg",
     # --> Internal Apps <--#
     "book",
 ]
@@ -166,3 +167,13 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:3000",
 ]
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Basic": {"type": "basic"},
+    }
+}
+
+REDOC_SETTINGS = {
+    "LAZY_RENDERING": False,
+}
